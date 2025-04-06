@@ -31,44 +31,6 @@ class FirebaseAuthStudy extends StatelessWidget {
 
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  Future<UserCredential> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
-
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
-
-    return await FirebaseAuth.instance.signInWithCredential(credential);
-  }
-
-
-Future<UserCredential> signInWithFacebook() async {
-  final LoginResult loginResult = await FacebookAuth.instance.login();
-
-  final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
-
-  return FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
-}
-
-
-  Future<void> profileInfos() async{
-    var user = FirebaseAuth.instance.currentUser;
-    if(user != null){
-      var displayName = user.displayName;
-      var email = user.email;
-      var phoneNumber = user.phoneNumber;
-      var photoURL = user.photoURL;
-        debugPrint("$displayName $email $phoneNumber $photoURL");
-    }
-    await user?.updateDisplayName("Kenan Taşdemir");
-    await user?.updatePassword("reallyStrongPwd123");
-    await user?.updatePhotoURL("url");
-
-  }
 
 
   @override
@@ -80,10 +42,7 @@ Future<UserCredential> signInWithFacebook() async {
           children: [
             ElevatedButton(
               onPressed: () {
-                auth.createUserWithEmailAndPassword(
-                  email: "ornekmail@hotmail.com",
-                  password: "reallyStongPassword159",
-                );
+              createUserEmailAndPassword();
               },
               child: Text("Email ile kullanıcı oluşturma"),
             ),
@@ -141,13 +100,7 @@ Future<UserCredential> signInWithFacebook() async {
             SizedBox(height: 15),
             ElevatedButton(
               onPressed: () async {
-                await FirebaseAuth.instance.verifyPhoneNumber(
-                  phoneNumber: '+90 123 456 78 90',
-                  verificationCompleted: (PhoneAuthCredential credential) {},
-                  verificationFailed: (FirebaseAuthException e) {},
-                  codeSent: (String verificationId, int? resendToken) {},
-                  codeAutoRetrievalTimeout: (String verificationId) {},
-                );
+          loginWithPhoneNumber();
               },
               child: Text("Telefon numarası onayla"),
             ),
@@ -163,4 +116,172 @@ Future<UserCredential> signInWithFacebook() async {
       ),
     );
   }
+
+    void deleteUser() async {
+    if (auth.currentUser != null) {
+      await auth.currentUser!.delete();
+    } else {
+      debugPrint('Kullanıcı oturum açmadığı için silinemez');
+    }
+  }
+
+  
+  void createUserEmailAndPassword() async {
+    try {
+      var _userCredential = await auth.createUserWithEmailAndPassword(
+          email: _email, password: _password);
+      var _myUser = _userCredential.user;
+
+      if (!_myUser!.emailVerified) {
+        await _myUser.sendEmailVerification();
+      } else {
+        debugPrint('kullanıcın maili onaylanmış, ilgili sayfaya gidebilir.');
+      }
+
+      debugPrint(_userCredential.toString());
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+
+  
+  Future<UserCredential> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    return await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
+
+Future<UserCredential> signInWithFacebook() async {
+  final LoginResult loginResult = await FacebookAuth.instance.login();
+
+  final OAuthCredential facebookAuthCredential = FacebookAuthProvider.credential(loginResult.accessToken!.token);
+
+  return FirebaseAuth.instance.signInWithCredential(facebookAuthCredential);
+}
+
+
+  Future<void> profileInfos() async{
+    var user = FirebaseAuth.instance.currentUser;
+    if(user != null){
+      var displayName = user.displayName;
+      var email = user.email;
+      var phoneNumber = user.phoneNumber;
+      var photoURL = user.photoURL;
+        debugPrint("$displayName $email $phoneNumber $photoURL");
+    }
+    await user?.updateDisplayName("Kenan Taşdemir");
+    await user?.updatePassword("reallyStrongPwd123");
+    await user?.updatePhotoURL("url");
+
+  }
+
+   void googleIleGiris() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    await FirebaseAuth.instance.signInWithCredential(credential);
+  }
+
+  void changeEmail() async {
+    try {
+      await auth.currentUser!.updateEmail('emre@emre.com');
+      await auth.signOut();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        debugPrint('reauthenticate olunacak');
+        var credential =
+            EmailAuthProvider.credential(email: _email, password: _password);
+        await auth.currentUser!.reauthenticateWithCredential(credential);
+
+        await auth.currentUser!.updateEmail('emrealtunbilek@gmail.com');
+        await auth.signOut();
+        debugPrint('email güncellendi');
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  
+  void signOutUser() async {
+    var _user = GoogleSignIn().currentUser;
+    if (_user != null) {
+      await GoogleSignIn().signOut();
+    }
+    await auth.signOut();
+  }
+
+
+
+  void changePassword() async {
+    try {
+      await auth.currentUser!.updatePassword('password');
+      await auth.signOut();
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        debugPrint('reauthenticate olunacak');
+        var credential =
+            EmailAuthProvider.credential(email: _email, password: _password);
+        await auth.currentUser!.reauthenticateWithCredential(credential);
+
+        await auth.currentUser!.updatePassword('password');
+        await auth.signOut();
+        debugPrint('şifre güncellendi');
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+  }
+
+  
+  void loginWithPhoneNumber() async {
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: '+905547126450',
+      verificationCompleted: (PhoneAuthCredential credential) async {
+        debugPrint('verification completed tetiklendi');
+        debugPrint(credential.toString());
+        await auth.signInWithCredential(credential);
+      },
+      verificationFailed: (FirebaseAuthException e) {
+        debugPrint(e.toString());
+      },
+      codeSent: (String verificationId, int? resendToken) async {
+        String _smsCode = "123456";
+        debugPrint('code sent tetiklendi');
+        var _credential = PhoneAuthProvider.credential(
+            verificationId: verificationId, smsCode: _smsCode);
+
+        await auth.signInWithCredential(_credential);
+      },
+      codeAutoRetrievalTimeout: (String verificationId) {
+        debugPrint('code auto retrieval timeout');
+      },
+    );
+  }
+
+
+
+
+
+  
 }
