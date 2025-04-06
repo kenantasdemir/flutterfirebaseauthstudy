@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "342984756978",
+    "project_id": "flutterfirebaseauthstudy",
+    "storage_bucket": "flutterfirebaseauthstudy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:342984756978:android:f26333d8262eabc270ca6b",
+        "android_client_info": {
+          "package_name": "com.kenant42.flutterfirebaseauthstudy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9jMFu0kRldsoOvm-UI_G7Q1tvnUt4yZQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
